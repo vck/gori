@@ -5,6 +5,7 @@ import (
 	"time"
     "fmt"
     "log"
+	"context"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -21,13 +22,26 @@ func main(){
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(10)
 
-	var version string
+	ctx := context.Background()
+	sql := "select * from speda_fleet"
 
-    err2 := db.QueryRow("SELECT VERSION()").Scan(&version)
+    rows, err := db.QueryContext(ctx, sql)
 
-    if err2 != nil {
-        log.Fatal(err2)
+    if err != nil {
+        log.Fatal(err)
     }
 
-    fmt.Println(version)
+    for rows.Next(){
+		var id int
+		var is_available bool
+		var fleet_name string
+		var created_date string
+
+		err := rows.Scan(&id, &is_available, &fleet_name, &created_date)
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Println(id, is_available, fleet_name, created_date)
+	}
 }
